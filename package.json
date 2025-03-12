@@ -1,0 +1,7 @@
+{
+  "dependencies": {
+    "@tailwindcss/cli": "^4.0.9",
+    "embla-carousel": "^8.5.2",
+    "tailwindcss": "^4.0.9"
+  }
+}

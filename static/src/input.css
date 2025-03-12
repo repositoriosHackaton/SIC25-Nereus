@@ -1,0 +1,8 @@
+@import "tailwindcss";
+
+@layer theme {
+    :root, :host {
+      --font-roboto: "Roboto", Roboto, monospace;
+      --default-font-family: var(--font-roboto);
+    }
+  }

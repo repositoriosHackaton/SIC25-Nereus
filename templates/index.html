@@ -1,0 +1,170 @@
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <link rel="stylesheet" href="{{ url_for('static', filename='src/output.css') }}">
+    <link rel="stylesheet" href="{{ url_for('static', filename='css/styles.css') }}">
+
+    <title>Detector de Tumores</title>
+</head>
+
+<body class="bg-gradient-to-tr from-neutral-900 via-slate-800 to-stone-900 text-primary-text font-primary">
+    <div class="hero p-8 w-full flex items-center flex-col">
+
+        <h1 class="text-4xl font-bold text-neutral-100 text-center mb-2 shadow-lg">
+            Escaneo de Tomografías con Inteligencia Artificial
+        </h1>
+        <p class="text-lg text-neutral-300 text-center">
+            Utilizando inteligencia artificial para analizar imágenes de tomografías computarizadas del cerebro, 
+            ayudamos a mejorar la detección temprana de tumores y apoyar a médicos en su diagnóstico.
+        </p>
+    </div>
+
+    <div class="p-8">
+        <h3 class="text-3xl font-bold text-neutral-100 text-center p-2">
+            ¡Prueba nuestra Inteligencia Artificial!
+        </h3>
+        <p class="text-center text-neutral-300 p-2">
+            Simplemente sube una imagen de una tomografía y luego procésala
+        </p>
+        <div class="model flex flex-col w-full">
+            <div class="flex flex-col md:flex-row">
+                <div class="parte-1-container w-full md:w-1/2 p-2">
+                    <div class="">
+                        <h4 class="text-2xl font-bold text-neutral-100 hover:cursor-default m-2">
+                            1. Selecciona la imagen
+                        </h4>
+    
+                        <input type="file" id="imageUpload" placeholder="Seleccionar archivo" class="hidden">
+                        <label for="imageUpload"
+                            class="text-neutral-300 border rounded-2xl p-2 mb-2 border-neutral-400 hover:cursor-pointer inline-block hover:bg-slate-800">Seleccionar
+                            imagen...</label>
+                        <button
+                            class="text-neutral-300 border rounded-2xl p-2 mb-2 border-neutral-400 hover:cursor-pointer block hover:bg-slate-800"
+                            onclick="uploadImage()">
+    
+                            Subir imagen seleccionada
+    
+                        </button>
+                    </div>
+    
+                    <div>
+                        <h3 class="text-neutral-100 m-2">
+                            Imagen original:
+                        </h3>
+                        <img class="m-2 rounded-2xl" id="uploadedImage" width="500">
+                    </div>
+                </div>
+    
+                <div class="parte-2-container w-full md:w-1/2 p-2">
+    
+                    <div>
+                        <h4 class="text-2xl font-bold text-neutral-100 hover:cursor-default m-2">
+                            2. Procesa la imagen
+                        </h4>
+                        <button
+                            class="text-neutral-300 border rounded-2xl p-2 md:mt-10 mb-2 border-neutral-400 hover:cursor-pointer hover:bg-slate-800"
+                            onclick="processImage()" disabled id="processButton">
+    
+                            Procesar imagen seleccionada
+    
+                        </button>
+                    </div>
+    
+    
+                    <div>
+                        <h3 class="text-neutral-100 m-2">
+                            Imagen procesada:
+                        </h3>
+                        <img class="m-2 rounded-2xl" id="processedImage" width="500">
+                    </div>
+                </div>
+
+            </div>
+            <div class="flex justify-center w-full">
+
+                <button class="text-neutral-300  m-auto border rounded-2xl p-2 md:mt-2 mb-2 border-neutral-400 hover:cursor-pointer hover:bg-slate-800"
+                    id="downloadButton" onclick="downloadProcessedImage()">
+                    Descargar imagen procesada
+                </button>
+
+            </div>
+        </div>
+    </div>
+
+    <div class="p-8 w-full flex flex-col">
+        <h3 class="text-3xl font-bold text-neutral-100 text-center mb-4">
+            ¡Siempre consulte con su doctor los resultados obtenidos!
+        </h3>
+        <div class="descripcion text-neutral-300 text-center p-2">
+            <p>
+                Nuestro propósito es crear una herramienta inteligente que apoye el diagnóstico del especialista, pero aún así los resultados obtenidos pueden tener errores. Teniendo esto en cuenta, le pedimos que corrobore los resultados obtenidos.
+            </p>
+        </div>
+    </div>
+
+
+    <script>
+        let uploadedFilename = "";
+
+        function uploadImage() {
+            const input = document.getElementById("imageUpload");
+            const file = input.files[0];
+
+            if (!file) {
+                alert("Selecciona una imagen primero.");
+                return;
+            }
+
+            const formData = new FormData();
+            formData.append("file", file);
+
+            fetch("/upload", {
+                method: "POST",
+                body: formData
+            })
+                .then(response => response.json())
+                .then(data => {
+                    uploadedFilename = data.filename;
+                    document.getElementById("uploadedImage").src = "/static/uploads/" + uploadedFilename;
+                    const processButton = document.getElementById("processButton");
+                    processButton.disabled = false;
+                    processButton.classList.add("hover:cursor-pointer", "hover:bg-slate-800");
+                })
+                .catch(error => console.error("Error:", error));
+        }
+
+        function processImage() {
+            fetch("/process", {
+                method: "POST",
+                headers: {
+                    "Content-Type": "application/json"
+                },
+                body: JSON.stringify({ filename: uploadedFilename })
+            })
+                .then(response => response.json())
+                .then(data => {
+                    document.getElementById("processedImage").src = data.processed_image;
+                    // Mostrar el botón de descarga
+                    document.getElementById("downloadButton").classList.add("show");
+                })
+                .catch(error => console.error("Error:", error));
+        }
+        function downloadProcessedImage() {
+            // Obtener la URL de la imagen procesada
+            const imageUrl = document.getElementById("processedImage").src;
+
+            // Crear un enlace temporal
+            const link = document.createElement('a');
+            link.href = imageUrl;
+            link.download = 'imagen_procesada.png'; // Nombre del archivo a descargar
+            document.body.appendChild(link);
+            link.click();
+            document.body.removeChild(link);
+        }
+
+    </script>
+</body>
+
+</html>
